@@ -1,0 +1,14 @@
+# better-ai-status-line for Codex: paste into ~/.codex/config.toml.
+# Codex builds its status line from built-in items, so this is config only.
+# If you already have a [tui] table, merge these keys into it instead.
+
+[tui]
+status_line_use_colors = true
+status_line = [
+    "model-with-reasoning",
+    "five-hour-limit",
+    "weekly-limit",
+    "estimated-thread-cost",
+    "context-used",
+    "context-window-size",
+]

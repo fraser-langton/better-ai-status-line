@@ -1,0 +1,14 @@
+{
+  "name": "better-ai-status-line",
+  "description": "Cost-aware status line for Claude Code and Codex.",
+  "owner": {
+    "name": "Fraser Langton"
+  },
+  "plugins": [
+    {
+      "name": "better-ai-status-line",
+      "source": "./",
+      "description": "Cost-aware status line for Claude Code, plus a matching Codex config."
+    }
+  ]
+}
