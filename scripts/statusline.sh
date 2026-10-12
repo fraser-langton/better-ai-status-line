@@ -6,9 +6,6 @@
 # Reads the status line JSON Claude Code pipes on stdin. Needs bash, jq and awk.
 #
 # Optional environment:
-#   BETTER_STATUSLINE_CTX_BUDGET  measure context against this many tokens instead
-#                                 of the model's full window (e.g. 700000 to match
-#                                 Codex's model_context_window). Display only.
 #   BETTER_STATUSLINE_CAVEMAN     path to caveman-statusline.sh; auto-detected
 #                                 when unset. Set to 0 to hide the badge.
 
@@ -23,15 +20,10 @@ seven_day=$(printf '%s' "$input" | jq -r '.rate_limits.seven_day.used_percentage
 seven_resets=$(printf '%s' "$input" | jq -r '.rate_limits.seven_day.resets_at // 0')
 cost=$(printf '%s' "$input" | jq -r '.cost.total_cost_usd // 0 | (.*100|round)/100')
 
-# Context: tokens in the current prompt against the model's window, or against
-# BETTER_STATUSLINE_CTX_BUDGET when that is smaller. Claude Code can't cap the
-# model window itself, so the budget is display-only; compaction comes from
-# autoCompactWindow in settings.
-ctx_budget="${BETTER_STATUSLINE_CTX_BUDGET:-}"
+# Context: tokens in the current prompt against the session's context window.
 ctx_tokens=$(printf '%s' "$input" | jq -r '.context_window.current_usage // empty
   | (.input_tokens // 0) + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0)')
 ctx_window=$(printf '%s' "$input" | jq -r '.context_window.context_window_size // empty')
-[ -n "$ctx_window" ] && [ -n "$ctx_budget" ] && [ "$ctx_window" -gt "$ctx_budget" ] && ctx_window=$ctx_budget
 ctx_compact=$(jq -r '.autoCompactWindow // empty' "$config_dir/settings.json" 2>/dev/null)
 ctx=""
 if [ -n "$ctx_tokens" ] && [ -n "$ctx_window" ]; then

@@ -66,7 +66,6 @@ Set these as environment variables, for example in the `env` block of `~/.claude
 
 | Variable | Effect |
 | --- | --- |
-| `BETTER_STATUSLINE_CTX_BUDGET` | Measure context against this many tokens instead of the model's full window. For example, `700000` matches a Codex `model_context_window = 700000`. Display only. |
 | `BETTER_STATUSLINE_CAVEMAN` | Path to `caveman-statusline.sh`, or `0` to hide the badge. Auto-detected when unset. |
 
 ## Uninstall
