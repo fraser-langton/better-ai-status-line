@@ -159,6 +159,13 @@ if [ -n "$session_id" ]; then
   color 244 "$session_id"
 fi
 
+# Superset (superset.sh) agent tabs export these; shown only when present.
+if [ -n "${SUPERSET_WORKSPACE_ID:-}" ] || [ -n "${SUPERSET_TERMINAL_ID:-}" ]; then
+  printf ' | Superset'
+  if [ -n "${SUPERSET_WORKSPACE_ID:-}" ]; then printf ' ws: '; color 244 "$SUPERSET_WORKSPACE_ID"; fi
+  if [ -n "${SUPERSET_TERMINAL_ID:-}" ]; then printf ' term: '; color 244 "$SUPERSET_TERMINAL_ID"; fi
+fi
+
 caveman_script=$(find_caveman)
 if [ -n "$caveman_script" ] && [ -f "$caveman_script" ]; then
   caveman=$(bash "$caveman_script" 2>/dev/null)
