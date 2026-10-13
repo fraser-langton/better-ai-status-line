@@ -160,13 +160,14 @@ if [ -n "$caveman_script" ] && [ -f "$caveman_script" ]; then
   [ -n "$caveman" ] && printf ' %s' "$caveman"
 fi
 
-# Second line: IDs for resuming and finding this session, each its own colour
-# (blue, purple, teal) so they're easy to tell apart.
+# Second line: IDs for resuming and finding this session, in the slate grey
+# Codex uses for its thread ID.
+ID_C=103
 ids=()
-[ -n "$session_id" ] && ids+=("Session: $(color 39 "$session_id")")
+[ -n "$session_id" ] && ids+=("Session: $(color "$ID_C" "$session_id")")
 # Superset (superset.sh) agent tabs export these; shown only when present.
-[ -n "${SUPERSET_WORKSPACE_ID:-}" ] && ids+=("Superset ws: $(color 141 "$SUPERSET_WORKSPACE_ID")")
-[ -n "${SUPERSET_TERMINAL_ID:-}" ] && ids+=("term: $(color 80 "$SUPERSET_TERMINAL_ID")")
+[ -n "${SUPERSET_WORKSPACE_ID:-}" ] && ids+=("Superset ws: $(color "$ID_C" "$SUPERSET_WORKSPACE_ID")")
+[ -n "${SUPERSET_TERMINAL_ID:-}" ] && ids+=("term: $(color "$ID_C" "$SUPERSET_TERMINAL_ID")")
 if [ "${#ids[@]}" -gt 0 ]; then
   printf '\n%s' "${ids[0]}"
   for id in "${ids[@]:1}"; do printf ' | %s' "$id"; done
