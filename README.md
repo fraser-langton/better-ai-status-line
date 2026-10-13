@@ -1,3 +1,16 @@
+**To install, paste this into any AI coding agent (Claude Code, Codex or anything else):**
+
+```text
+Install the better-ai-status-line status line from https://github.com/fraser-langton/better-ai-status-line into the AI coding tool you are running in.
+
+1. Clone the repo into a temporary directory. Read README.md, scripts/statusline.sh and codex/config.toml.
+2. If you are Claude Code: run `bash <clone>/scripts/install.sh`. It needs jq; if jq is missing, tell me how to install it. If the script exits with code 2, a status line is already configured: show me the existing one and ask me before re-running with --force.
+3. If you are Codex: back up ~/.codex/config.toml, then merge the [tui] keys from codex/config.toml into it. If a [tui] table already exists, change only status_line and status_line_use_colors and keep every other key.
+4. If you are any other tool: find out how it configures its status line, footer or prompt bar, and recreate as much of scripts/statusline.sh as it supports: model, reasoning effort, rate-limit usage with time until reset, session cost, context used against the window, and the session ID. Colour values by cost: green when cheap or low, then yellow, then red. Back up any config file before changing it. If the tool has no configurable status line, say so and stop.
+5. If Claude Code or Codex is also installed on this machine, ask me whether to set that one up too.
+6. Tell me what you changed, where the backups are, and whether I need to restart anything.
+```
+
 # better-ai-status-line
 
 A cost-aware status line for [Claude Code](https://claude.com/claude-code), plus a matching config for OpenAI's Codex CLI. You see what a session is costing you without having to run `/cost` or `/usage`.
