@@ -18,8 +18,8 @@ Each segment changes colour as it gets expensive: green, then yellow, then red.
 | 5h / 7d | subscription rate-limit usage and time until reset | ≥50% yellow, ≥80% red |
 | Cost | session cost in USD | ≥$1 yellow, ≥$5 red |
 | Ctx | context used, tokens/window, and the auto-compact point if set | ≥50% yellow, ≥80% red |
-| Session | session ID, for `claude --resume <id>` | grey |
-| Superset | [Superset](https://superset.sh) workspace and terminal IDs, only inside a Superset agent tab | grey |
+| Session | session ID, for `claude --resume <id>` | blue |
+| Superset | [Superset](https://superset.sh) workspace and terminal IDs, only inside a Superset agent tab | workspace purple, terminal teal |
 
 Rate-limit segments only appear when Claude Code reports them, which happens on Pro/Max subscriptions. If the [caveman](https://github.com/JuliusBrussee/caveman) plugin is installed, its badge goes on the end.
 
