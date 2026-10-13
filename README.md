@@ -4,7 +4,7 @@ A cost-aware status line for [Claude Code](https://claude.com/claude-code), plus
 
 ```
 Model: Opus 5.5 | Effort: high | 5h: 42% (1h30m) | 7d: 81% (2d7h) | Cost: $1.23 | Ctx: 16% (165k/1M, compact @600k)
-Session: 7f3c2a10-… | Superset ws: fe018fdd-… | term: 2ba586ae-…
+Session: 7f3c2a10-… | Superset ws: 4b9e0c22-… | term: a17d5f3e-…
 ```
 
 IDs go on a second line so the first stays short.
