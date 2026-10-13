@@ -3,7 +3,7 @@
 A cost-aware status line for [Claude Code](https://claude.com/claude-code), plus a matching config for OpenAI's Codex CLI. You see what a session is costing you without having to run `/cost` or `/usage`.
 
 ```
-Model: Opus 5.5 | Effort: high | 5h: 42% (1h30m) | 7d: 81% (2d7h) | Cost: $1.23 | Ctx: 16% (165k/1M, compact @600k)
+Model: Opus 5.5 | Effort: high | 5h: 42% (1h30m) | 7d: 81% (2d7h) | Cost: $1.23 | Ctx: 16% (165k/1M, compact @600k) | Session: 7f3c2a10-…
 ```
 
 Each segment changes colour as it gets expensive: green, then yellow, then red.
@@ -15,6 +15,7 @@ Each segment changes colour as it gets expensive: green, then yellow, then red.
 | 5h / 7d | subscription rate-limit usage and time until reset | ≥50% yellow, ≥80% red |
 | Cost | session cost in USD | ≥$1 yellow, ≥$5 red |
 | Ctx | context used, tokens/window, and the auto-compact point if set | ≥50% yellow, ≥80% red |
+| Session | session ID, for `claude --resume <id>` | grey |
 
 Rate-limit segments only appear when Claude Code reports them, which happens on Pro/Max subscriptions. If the [caveman](https://github.com/JuliusBrussee/caveman) plugin is installed, its badge goes on the end.
 
@@ -57,6 +58,7 @@ status_line = [
     "estimated-thread-cost",
     "context-used",
     "context-window-size",
+    "thread-id",
 ]
 ```
 

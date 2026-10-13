@@ -11,4 +11,5 @@ status_line = [
     "estimated-thread-cost",
     "context-used",
     "context-window-size",
+    "thread-id",
 ]

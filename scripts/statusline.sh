@@ -13,6 +13,7 @@ input=$(cat)
 config_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 
 model=$(printf '%s' "$input" | jq -r '.model.display_name // "?"')
+session_id=$(printf '%s' "$input" | jq -r '.session_id // empty')
 effort=$(printf '%s' "$input" | jq -r '.effort.level // "auto"')
 five_hour=$(printf '%s' "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty | floor')
 five_resets=$(printf '%s' "$input" | jq -r '.rate_limits.five_hour.resets_at // 0')
@@ -151,6 +152,11 @@ if [ -n "$ctx" ]; then
     [ -n "$ctx_compact" ] && [ "$ctx_compact" -lt "$ctx_window" ] && printf ', compact @%s' "$(fmt_tokens "$ctx_compact")"
     printf ')'
   fi
+fi
+
+if [ -n "$session_id" ]; then
+  printf ' | Session: '
+  color 244 "$session_id"
 fi
 
 caveman_script=$(find_caveman)
