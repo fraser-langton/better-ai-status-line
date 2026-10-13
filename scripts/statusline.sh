@@ -154,20 +154,19 @@ if [ -n "$ctx" ]; then
   fi
 fi
 
-if [ -n "$session_id" ]; then
-  printf ' | Session: '
-  color 244 "$session_id"
-fi
-
-# Superset (superset.sh) agent tabs export these; shown only when present.
-if [ -n "${SUPERSET_WORKSPACE_ID:-}" ] || [ -n "${SUPERSET_TERMINAL_ID:-}" ]; then
-  printf ' | Superset'
-  if [ -n "${SUPERSET_WORKSPACE_ID:-}" ]; then printf ' ws: '; color 244 "$SUPERSET_WORKSPACE_ID"; fi
-  if [ -n "${SUPERSET_TERMINAL_ID:-}" ]; then printf ' term: '; color 244 "$SUPERSET_TERMINAL_ID"; fi
-fi
-
 caveman_script=$(find_caveman)
 if [ -n "$caveman_script" ] && [ -f "$caveman_script" ]; then
   caveman=$(bash "$caveman_script" 2>/dev/null)
   [ -n "$caveman" ] && printf ' %s' "$caveman"
+fi
+
+# Second line: IDs for resuming and finding this session.
+ids=()
+[ -n "$session_id" ] && ids+=("Session: $(color 244 "$session_id")")
+# Superset (superset.sh) agent tabs export these; shown only when present.
+[ -n "${SUPERSET_WORKSPACE_ID:-}" ] && ids+=("Superset ws: $(color 244 "$SUPERSET_WORKSPACE_ID")")
+[ -n "${SUPERSET_TERMINAL_ID:-}" ] && ids+=("term: $(color 244 "$SUPERSET_TERMINAL_ID")")
+if [ "${#ids[@]}" -gt 0 ]; then
+  printf '\n%s' "${ids[0]}"
+  for id in "${ids[@]:1}"; do printf ' | %s' "$id"; done
 fi

@@ -3,8 +3,11 @@
 A cost-aware status line for [Claude Code](https://claude.com/claude-code), plus a matching config for OpenAI's Codex CLI. You see what a session is costing you without having to run `/cost` or `/usage`.
 
 ```
-Model: Opus 5.5 | Effort: high | 5h: 42% (1h30m) | 7d: 81% (2d7h) | Cost: $1.23 | Ctx: 16% (165k/1M, compact @600k) | Session: 7f3c2a10-…
+Model: Opus 5.5 | Effort: high | 5h: 42% (1h30m) | 7d: 81% (2d7h) | Cost: $1.23 | Ctx: 16% (165k/1M, compact @600k)
+Session: 7f3c2a10-… | Superset ws: fe018fdd-… | term: 2ba586ae-…
 ```
+
+IDs go on a second line so the first stays short.
 
 Each segment changes colour as it gets expensive: green, then yellow, then red.
 
