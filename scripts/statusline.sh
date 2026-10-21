@@ -1,9 +1,9 @@
 #!/bin/bash
-# better-ai-status-line — status line for Claude Code and the Cursor CLI agent:
-# model, effort, rate limits, cost and context, with an optional caveman badge.
+# better-ai-status-line — Claude Code status line: model, effort, rate limits,
+# cost and context, with an optional caveman badge.
 # Colors scale with cost: cheap/low stays green, expensive/high goes red.
 #
-# Reads status-line JSON on stdin (Claude Code or Cursor CLI). Needs bash, jq and awk.
+# Reads the status line JSON Claude Code pipes on stdin. Needs bash, jq and awk.
 #
 # Optional environment:
 #   BETTER_STATUSLINE_CAVEMAN     path to caveman-statusline.sh; auto-detected
@@ -14,7 +14,63 @@ config_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 
 model=$(printf '%s' "$input" | jq -r '.model.display_name // "?"')
 session_id=$(printf '%s' "$input" | jq -r '.session_id // empty')
-effort=$(printf '%s' "$input" | jq -r '.effort.level // "auto"')
+model_id=$(printf '%s' "$input" | jq -r '.model.id // empty')
+max_mode=$(printf '%s' "$input" | jq -r '.model.max_mode // false')
+
+# Effort: Claude Code sends effort.level; Cursor CLI sends model.param_summary and
+# keeps live parameters in ~/.cursor/cli-config.json (not in the status-line JSON).
+resolve_effort() {
+  local level summary from_config host
+  level=$(printf '%s' "$input" | jq -r '.effort.level // empty')
+  if [ -n "$level" ]; then
+    printf '%s' "$level"
+    return
+  fi
+
+  summary=$(printf '%s' "$input" | jq -r '.model.param_summary // empty' | sed -e 's/^[[:space:](]*//' -e 's/[[:space:])]*$//')
+  if [ -n "$summary" ]; then
+    printf '%s' "$summary"
+    return
+  fi
+
+  local cursor_config="${CURSOR_CONFIG_PATH:-$HOME/.cursor/cli-config.json}"
+  if [ -f "$cursor_config" ]; then
+    from_config=$(jq -r --arg mid "$model_id" '
+      def params_for_model:
+        if $mid != "" and ((.selectedModel.modelId // "") == $mid)
+        then .selectedModel.parameters // []
+        elif $mid == "" then .selectedModel.parameters // []
+        else [] end;
+      params_for_model as $p
+      | [
+          ($p[] | select(.id == "effort" or .id == "reasoning" or .id == "reasoning_effort"
+            or .id == "thought_level" or .id == "thinking") | .value),
+          (if ($p | any(.id == "fast" and .value == "true")) then "fast" else empty end),
+          ($p[] | select(.id == "optimize_for") | .value),
+          ($p[] | select(.id == "context") | .value)
+        ]
+      | map(select(. != null and . != "" and . != "false"))
+      | unique | join(" ")
+    ' "$cursor_config" 2>/dev/null)
+    if [ -n "$from_config" ] && [ "$from_config" != "null" ]; then
+      printf '%s' "$from_config"
+      return
+    fi
+  fi
+
+  if [ "$max_mode" = "true" ]; then
+    printf 'max'
+    return
+  fi
+
+  host=$(printf '%s' "$input" | jq -r 'if .effort then "claude" elif .version then "cursor" else "unknown" end')
+  if [ "$host" = "cursor" ]; then
+    printf 'default'
+  else
+    printf 'auto'
+  fi
+}
+effort=$(resolve_effort)
 five_hour=$(printf '%s' "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty | floor')
 five_resets=$(printf '%s' "$input" | jq -r '.rate_limits.five_hour.resets_at // 0')
 seven_day=$(printf '%s' "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty | floor')
@@ -67,13 +123,22 @@ model_color() {
 }
 
 effort_color() {
-  case "$1" in
-    low) echo 82 ;;
-    medium) echo 37 ;;
-    high) echo 220 ;;
-    xhigh) echo 208 ;;
+  local e
+  e=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+  case "$e" in
+    low|no*) echo 82 ;;
+    default|auto) echo 244 ;;
+    medium|med|balanced) echo 37 ;;
+    high|xhigh|extra*|fast) echo 220 ;;
     max) echo 196 ;;
-    *) echo 244 ;;        # auto / unrecognized
+    *)
+      case "$e" in
+        *max*) echo 196 ;;
+        *high*|*xhigh*) echo 220 ;;
+        *low*) echo 82 ;;
+        *) echo 244 ;;
+      esac
+      ;;
   esac
 }
 
