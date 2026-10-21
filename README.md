@@ -13,7 +13,7 @@ Install the better-ai-status-line status line from https://github.com/fraser-lan
 
 # better-ai-status-line
 
-A cost-aware status line for [Claude Code](https://claude.com/claude-code), plus a matching config for OpenAI's Codex CLI. You see what a session is costing you without having to run `/cost` or `/usage`.
+A cost-aware status line for [Claude Code](https://claude.com/claude-code) and the [Cursor](https://cursor.com) CLI agent, plus a matching config for OpenAI's Codex CLI. You see what a session is costing you without having to run `/cost` or `/usage`.
 
 ```
 Model: Opus 5.5 | Effort: high | 5h: 42% (1h30m) | 7d: 81% (2d7h) | Cost: $1.23 | Ctx: 16% (165k/1M, compact @600k)
@@ -60,6 +60,34 @@ Setup copies the script to `~/.claude/better-ai-status-line/statusline.sh` and s
 git clone https://github.com/fraser-langton/better-ai-status-line
 bash better-ai-status-line/scripts/install.sh            # add --force to replace an existing status line
 ```
+
+## Install (Cursor CLI)
+
+The Cursor **IDE chat** does not run a custom status line. This applies to the **Cursor CLI agent** in a terminal (`statusLine` in `~/.cursor/cli-config.json`), using the same command hook as Claude Code.
+
+Requires `bash`, `jq` and `awk`.
+
+```sh
+git clone https://github.com/fraser-langton/better-ai-status-line
+bash better-ai-status-line/scripts/install-cursor.sh   # add --force to replace an existing status line
+```
+
+Restart or start a new CLI agent session after install.
+
+### Cursor context fields
+
+The CLI payload matches [Claude Code's status line shape](https://code.claude.com/docs/en/statusline) for shared fields (`model`, `session_id`, `context_window`). For **context usage**, prefer the session-level fields the CLI sends:
+
+| Field | Use |
+| --- | --- |
+| `context_window.used_percentage` | Percentage for **Ctx** |
+| `context_window.total_input_tokens` | Numerator in `(tokens/window)` |
+| `context_window.context_window_size` | Denominator in `(tokens/window)` |
+| `context_window.current_usage` | Last API call only — can exceed `context_window_size`; do not use alone for session fill on Cursor |
+
+Claude Code can rely on `current_usage` when session totals are absent. Effort, subscription rate limits and session cost appear when the host includes `effort`, `rate_limits` and `cost` in the JSON (Claude Code; not all are present on Cursor today).
+
+Run `bash scripts/validate.sh` after changes to check Claude and Cursor fixture behaviour.
 
 ## Install (Codex)
 

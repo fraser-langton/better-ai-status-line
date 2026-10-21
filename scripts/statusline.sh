@@ -1,9 +1,9 @@
 #!/bin/bash
-# better-ai-status-line — Claude Code status line: model, effort, rate limits,
-# cost and context, with an optional caveman badge.
+# better-ai-status-line — status line for Claude Code and the Cursor CLI agent:
+# model, effort, rate limits, cost and context, with an optional caveman badge.
 # Colors scale with cost: cheap/low stays green, expensive/high goes red.
 #
-# Reads the status line JSON Claude Code pipes on stdin. Needs bash, jq and awk.
+# Reads status-line JSON on stdin (Claude Code or Cursor CLI). Needs bash, jq and awk.
 #
 # Optional environment:
 #   BETTER_STATUSLINE_CAVEMAN     path to caveman-statusline.sh; auto-detected
@@ -21,16 +21,26 @@ seven_day=$(printf '%s' "$input" | jq -r '.rate_limits.seven_day.used_percentage
 seven_resets=$(printf '%s' "$input" | jq -r '.rate_limits.seven_day.resets_at // 0')
 cost=$(printf '%s' "$input" | jq -r '.cost.total_cost_usd // 0 | (.*100|round)/100')
 
-# Context: tokens in the current prompt against the session's context window.
-ctx_tokens=$(printf '%s' "$input" | jq -r '.context_window.current_usage // empty
-  | (.input_tokens // 0) + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0)')
+# Context: session fill vs window. Claude Code uses current_usage for the live
+# prompt; Cursor CLI uses used_percentage + total_input_tokens (current_usage
+# is last-call only and can exceed context_window_size).
 ctx_window=$(printf '%s' "$input" | jq -r '.context_window.context_window_size // empty')
+ctx_used_pct=$(printf '%s' "$input" | jq -r '.context_window.used_percentage // empty')
+ctx_total_input=$(printf '%s' "$input" | jq -r '.context_window.total_input_tokens // empty')
+ctx_call_tokens=$(printf '%s' "$input" | jq -r '.context_window.current_usage // empty
+  | (.input_tokens // 0) + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0)')
 ctx_compact=$(jq -r '.autoCompactWindow // empty' "$config_dir/settings.json" 2>/dev/null)
+ctx_display_tokens=""
+if [ -n "$ctx_total_input" ] && [ "$ctx_total_input" != "null" ]; then
+  ctx_display_tokens=$ctx_total_input
+elif [ -n "$ctx_call_tokens" ]; then
+  ctx_display_tokens=$ctx_call_tokens
+fi
 ctx=""
-if [ -n "$ctx_tokens" ] && [ -n "$ctx_window" ]; then
-  ctx=$((ctx_tokens * 100 / ctx_window))
-else
-  ctx=$(printf '%s' "$input" | jq -r '.context_window.used_percentage // empty | floor')
+if [ -n "$ctx_used_pct" ] && [ "$ctx_used_pct" != "null" ]; then
+  ctx=$(printf '%s' "$ctx_used_pct" | awk '{printf "%d", $1}')
+elif [ -n "$ctx_display_tokens" ] && [ -n "$ctx_window" ] && [ "$ctx_window" -gt 0 ]; then
+  ctx=$((ctx_display_tokens * 100 / ctx_window))
 fi
 
 # 165486 -> 165k, 1000000 -> 1M
@@ -147,8 +157,8 @@ color "$(cost_color "$cost")" "\$$cost"
 if [ -n "$ctx" ]; then
   printf ' | Ctx: '
   color "$(pct_color "$ctx")" "${ctx}%"
-  if [ -n "$ctx_tokens" ] && [ -n "$ctx_window" ]; then
-    printf ' (%s/%s' "$(fmt_tokens "$ctx_tokens")" "$(fmt_tokens "$ctx_window")"
+  if [ -n "$ctx_display_tokens" ] && [ -n "$ctx_window" ]; then
+    printf ' (%s/%s' "$(fmt_tokens "$ctx_display_tokens")" "$(fmt_tokens "$ctx_window")"
     [ -n "$ctx_compact" ] && [ "$ctx_compact" -lt "$ctx_window" ] && printf ', compact @%s' "$(fmt_tokens "$ctx_compact")"
     printf ')'
   fi
