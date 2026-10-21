@@ -47,4 +47,11 @@ line1=$(printf '%s\n' "$out" | head -1)
 assert_contains "claude ctx pct" "$line1" "Ctx: 17%"
 assert_contains "claude token pair" "$line1" "175k/1M"
 
+# Cursor: param_summary when effort.level is absent.
+cursor_effort_payload='{"version":"1.0","model":{"id":"grok-4.5","display_name":"Grok 4.5","param_summary":"High"}}'
+out=$(run "$cursor_effort_payload")
+line1=$(printf '%s\n' "$out" | head -1)
+assert_contains "cursor param_summary effort" "$line1" "Effort: High"
+assert_not_contains "cursor effort auto" "$line1" "Effort: auto"
+
 echo "OK: statusline.sh validation passed"

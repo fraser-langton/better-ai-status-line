@@ -85,7 +85,20 @@ The CLI payload matches [Claude Code's status line shape](https://code.claude.co
 | `context_window.context_window_size` | Denominator in `(tokens/window)` |
 | `context_window.current_usage` | Last API call only — can exceed `context_window_size`; do not use alone for session fill on Cursor |
 
-Claude Code can rely on `current_usage` when session totals are absent. Effort, subscription rate limits and session cost appear when the host includes `effort`, `rate_limits` and `cost` in the JSON (Claude Code; not all are present on Cursor today).
+Claude Code can rely on `current_usage` when session totals are absent.
+
+### Cursor effort / parameters
+
+Cursor does not send `effort.level`. The status line resolves **Effort** in this order:
+
+1. `model.param_summary` when the CLI includes it (same string the picker uses, e.g. `High`, `Fast`)
+2. Non-default entries from `selectedModel.parameters` in `~/.cursor/cli-config.json` (`effort`, `reasoning`, `fast`, `optimize_for`, …)
+3. `model.max_mode` → `max`
+4. `default` when none of the above apply (models like Composer with only default toggles)
+
+Override the config path with `CURSOR_CONFIG_PATH` if needed.
+
+Subscription rate limits and session cost still require `rate_limits` / `cost` in the JSON (Claude Code today).
 
 Run `bash scripts/validate.sh` after changes to check Claude and Cursor fixture behaviour.
 
