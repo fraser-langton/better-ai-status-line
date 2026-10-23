@@ -37,6 +37,20 @@ command -v jq >/dev/null || { echo "better-ai-status-line needs jq: brew install
 [ -f "$settings" ] || { mkdir -p "$config_dir"; echo '{}' > "$settings"; }
 
 current=$(jq -r '.statusLine.command // empty' "$settings")
+
+# ai-state-machine wraps the status line and runs the command saved in its
+# wrapped-statusline file. Install there instead of replacing its wrapper.
+asm_home="${ASM_HOME:-$HOME/.ai-state-machine}"
+if [[ "$current" == *"$asm_home/bin/asm"*statusline* ]]; then
+  mkdir -p "$target_dir"
+  cp "$here/statusline.sh" "$target"
+  chmod +x "$target"
+  printf '%s\n' "$command" > "$asm_home/wrapped-statusline"
+  echo "Installed status line script: $target"
+  echo "ai-state-machine wraps the status line; set it to run this one: $asm_home/wrapped-statusline"
+  exit 0
+fi
+
 if [ -n "$current" ] && [ "$current" != "$command" ] && [ "$force" != 1 ]; then
   echo "settings.json already has a status line:" >&2
   echo "  $current" >&2

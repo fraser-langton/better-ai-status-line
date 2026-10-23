@@ -79,6 +79,10 @@ status_line = [
 ]
 ```
 
+## With ai-state-machine
+
+[ai-state-machine](https://github.com/fraser-langton/ai-state-machine) adds a workflow progress line under this one. Install them in either order. Whichever goes second keeps both: ai-state-machine wraps this status line, and this installer updates the wrapped command instead of replacing the wrapper.
+
 ## Options
 
 Set these as environment variables, for example in the `env` block of `~/.claude/settings.json`:
