@@ -1,10 +1,20 @@
 {
   "name": "better-ai-status-line",
-  "version": "0.1.0",
-  "description": "Cost-aware status line for Claude Code (model, effort, 5h/7d limits with resets, cost, context), plus a matching Codex config.",
-  "author": { "name": "Fraser Langton" },
+  "version": "0.2.0",
+  "description": "Shared cost-aware status lines for Claude Code, Cursor CLI and Antigravity CLI, plus matching native Codex configuration.",
+  "author": {
+    "name": "Fraser Langton"
+  },
   "homepage": "https://github.com/fraser-langton/better-ai-status-line",
   "repository": "https://github.com/fraser-langton/better-ai-status-line",
   "license": "MIT",
-  "keywords": ["statusline", "status-line", "codex", "cost", "rate-limits"]
+  "keywords": [
+    "statusline",
+    "status-line",
+    "codex",
+    "cost",
+    "rate-limits",
+    "cursor",
+    "antigravity"
+  ]
 }

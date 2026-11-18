@@ -1,97 +1,75 @@
-**To install, paste this into any AI coding agent (Claude Code, Codex or anything else):**
+**To install, paste this into your AI coding agent:**
 
 ```text
 Install the better-ai-status-line status line from https://github.com/fraser-langton/better-ai-status-line into the AI coding tool you are running in.
 
-1. Clone the repo into a temporary directory. Read README.md, scripts/statusline.sh and codex/config.toml.
-2. If you are Claude Code: run `bash <clone>/scripts/install.sh`. It needs jq; if jq is missing, tell me how to install it. If the script exits with code 2, a status line is already configured: show me the existing one and ask me before re-running with --force.
-3. If you are Codex: back up ~/.codex/config.toml, then merge the [tui] keys from codex/config.toml into it. If a [tui] table already exists, change only status_line and status_line_use_colors and keep every other key.
-4. If you are any other tool: find out how it configures its status line, footer or prompt bar, and recreate as much of scripts/statusline.sh as it supports: model, reasoning effort, rate-limit usage with time until reset, session cost, context used against the window, and the session ID. Colour values by cost: green when cheap or low, then yellow, then red. Back up any config file before changing it. If the tool has no configurable status line, say so and stop.
-5. If Claude Code or Codex is also installed on this machine, ask me whether to set that one up too.
-6. Tell me what you changed, where the backups are, and whether I need to restart anything.
+1. Clone the repo into a temporary directory and read README.md.
+2. For Claude Code, run bash <clone>/scripts/install.sh. For Cursor CLI, run bash <clone>/scripts/install-cursor.sh. For Antigravity CLI, run bash <clone>/scripts/install-antigravity.sh. These require Python 3.9+ and install the renderer at a persistent path outside the clone. Do not configure a command under /tmp.
+3. If the installer exits with code 2, show the existing command. Use --force only if replacing it is already authorised or the user agrees. Installers back up changed settings and preserve unrelated keys.
+4. For Codex, back up ~/.codex/config.toml and merge only status_line and status_line_use_colors from codex/config.toml into its existing [tui] table. Keep other settings.
+5. Only install other CLIs if requested. For another tool, check its supported footer interface before changing settings.
+6. Report the changed paths, backup locations, and restart requirement.
 ```
 
 # better-ai-status-line
 
-A cost-aware status line for [Claude Code](https://claude.com/claude-code) and the [Cursor](https://cursor.com) CLI agent, plus a matching config for OpenAI's Codex CLI. You see what a session is costing you without having to run `/cost` or `/usage`.
+A shared, cost-aware status line for Claude Code, Cursor CLI and Antigravity CLI, plus the closest matching native footer configuration for Codex.
 
-```
-Model: Opus 5.5 | Effort: high | 5h: 42% (1h30m) | 7d: 81% (2d7h) | Cost: $1.23 | Ctx: 16% (165k/1M, compact @600k)
+```text
+Model: Opus 5.5 | Effort: high | 5h: 42% (1h30m) | 7d: 81% (2d7h) | Cost: $1.23 | Ctx: 16% (165k/1M, compact @600k) [CAVEMAN]
 Session: 7f3c2a10-… | Superset ws: 4b9e0c22-… | term: a17d5f3e-…
 ```
 
-IDs go on a second line so the first stays short.
-
-Each segment changes colour as it gets expensive: green, then yellow, then red.
+The three command-based CLIs share labels, field order and colours. Each shows only the metrics it supplies; an absent cost or limit is hidden, while an actual zero is displayed. IDs go on a second line.
 
 | Segment | Shows | Colour |
 | --- | --- | --- |
-| Model | current model | Haiku green, Sonnet yellow, Opus/Fable red |
-| Effort | reasoning effort | low green → max red |
-| 5h / 7d | subscription rate-limit usage and time until reset | ≥50% yellow, ≥80% red |
-| Cost | session cost in USD | ≥$1 yellow, ≥$5 red |
-| Ctx | context used, tokens/window, and the auto-compact point if set | ≥50% yellow, ≥80% red |
-| Session | session ID, for `claude --resume <id>` | slate grey |
-| Superset | [Superset](https://superset.sh) workspace and terminal IDs, only inside a Superset agent tab | slate grey |
+| Model | Current model | Haiku/Flash green, Sonnet/Pro yellow, Opus/Fable/Ultra red |
+| Effort | Reasoning effort | Low green → max red |
+| 5h / 7d | Rate-limit usage and time until reset | ≥50% yellow, ≥80% red |
+| Quota | Antigravity quota used and time until reset | ≥50% yellow, ≥80% red |
+| Cost | Reported session cost in USD | ≥$1 yellow, ≥$5 red |
+| Ctx | Context used and tokens/window | ≥50% yellow, ≥80% red |
+| Session | Session or conversation ID | Slate grey |
+| Superset | Workspace and terminal IDs when exported by Superset/Paradev | Slate grey |
 
-Rate-limit segments only appear when Claude Code reports them, which happens on Pro/Max subscriptions. If the [caveman](https://github.com/JuliusBrussee/caveman) plugin is installed, its badge goes on the end.
+Subscription limits and cost depend on the host and account. Cursor does not currently supply all of Claude's metrics. Antigravity's model label supplies effort when no separate effort field exists.
 
-## Install (Claude Code)
+## Install
 
-Requires `bash`, `jq` and `awk`.
+Requires Python 3.9+ and Bash for the installer entry points. The renderer uses only the Python standard library; `jq` and `awk` are no longer required.
 
-Type this at the prompt in a Claude Code session:
-
+```sh
+git clone https://github.com/fraser-langton/better-ai-status-line
+cd better-ai-status-line
 ```
+
+Choose the relevant installer:
+
+| CLI | Command | Settings | Installed renderer |
+| --- | --- | --- | --- |
+| Claude Code | `bash scripts/install.sh` | `~/.claude/settings.json` | `~/.claude/better-ai-status-line/statusline.py` |
+| Cursor CLI | `bash scripts/install-cursor.sh` | `~/.cursor/cli-config.json` | `~/.cursor/better-ai-status-line/statusline.py` |
+| Antigravity CLI | `bash scripts/install-antigravity.sh` | `~/.gemini/antigravity-cli/settings.json` | `~/.gemini/antigravity-cli/better-ai-status-line/statusline.py` |
+
+Installers copy the renderer out of the clone and configure the current Python interpreter using an absolute path. The temporary clone can then be deleted. Restart the affected CLI to load the settings. Cursor IDE chat does not use this hook.
+
+An unrelated status line is left alone (exit code 2). Add `--force` to replace it. Existing installs of this package can be upgraded by rerunning the installer. Changes preserve unrelated settings and status-line options, with a timestamped backup beside the settings file. Cursor gets a minimum five-second timeout and a one-second update interval to tolerate busy machines.
+
+Config-directory overrides are supported: `CLAUDE_CONFIG_DIR`, `CURSOR_CONFIG_DIR` / `CURSOR_CONFIG_PATH`, and `GEMINI_CONFIG_DIR`. On Cursor, set `CURSOR_CONFIG_PATH` to a full settings-file path. The renderer uses it when resolving model effort.
+
+### Claude Code plugin
+
+```text
 /plugin install better-ai-status-line --marketplace fraser-langton/better-ai-status-line
-```
-
-Answer `y` to add the marketplace, then pick a scope. Then run:
-
-```
 /better-ai-status-line:setup
 ```
 
-Setup copies the script to `~/.claude/better-ai-status-line/statusline.sh` and sets `statusLine` in `~/.claude/settings.json`, backing that file up first. If you already have a status line, it asks before replacing it. After a plugin update, run setup again to get the new script.
+Add the marketplace and choose the desired scope when prompted. Rerun setup after plugin updates to refresh the persistent renderer.
 
-### Manual install
+### Codex
 
-```sh
-git clone https://github.com/fraser-langton/better-ai-status-line
-bash better-ai-status-line/scripts/install.sh            # add --force to replace an existing status line
-```
-
-## Install (Cursor CLI)
-
-The Cursor **IDE chat** does not run a custom status line. This applies to the **Cursor CLI agent** in a terminal (`statusLine` in `~/.cursor/cli-config.json`), using the same command hook as Claude Code.
-
-Requires `bash`, `jq` and `awk`.
-
-```sh
-git clone https://github.com/fraser-langton/better-ai-status-line
-bash better-ai-status-line/scripts/install-cursor.sh   # add --force to replace an existing status line
-```
-
-Restart or start a new CLI agent session after install.
-
-### Cursor context fields
-
-The CLI payload matches [Claude Code's status line shape](https://code.claude.com/docs/en/statusline) for shared fields (`model`, `session_id`, `context_window`). For **context usage**, prefer the session-level fields the CLI sends:
-
-| Field | Use |
-| --- | --- |
-| `context_window.used_percentage` | Percentage for **Ctx** |
-| `context_window.total_input_tokens` | Numerator in `(tokens/window)` |
-| `context_window.context_window_size` | Denominator in `(tokens/window)` |
-| `context_window.current_usage` | Last API call only — can exceed `context_window_size`; do not use alone for session fill on Cursor |
-
-Claude Code can rely on `current_usage` when session totals are absent. Effort, subscription rate limits and session cost appear when the host includes `effort`, `rate_limits` and `cost` in the JSON (Claude Code; not all are present on Cursor today).
-
-Run `bash scripts/validate.sh` after changes to check Claude and Cursor fixture behaviour.
-
-## Install (Codex)
-
-Codex builds its status line from built-in items, so you only need config. Paste [`codex/config.toml`](codex/config.toml) into `~/.codex/config.toml`. If you already have a `[tui]` table, merge the keys into it instead.
+Codex's native footer controls its labels, colours, separators and layout. It cannot exactly reproduce the other three using this configuration. Back up `~/.codex/config.toml` and merge the keys in [`codex/config.toml`](codex/config.toml) into the existing `[tui]` table:
 
 ```toml
 [tui]
@@ -107,17 +85,48 @@ status_line = [
 ]
 ```
 
-## Options
+Limit items show **remaining** allowance in Codex; the command renderer shows **used** allowance. Estimated cost appears only where Codex reports it. `bash scripts/install.sh --codex` prints this block without changing files.
 
-Set these as environment variables, for example in the `env` block of `~/.claude/settings.json`:
+## Payload handling
 
-| Variable | Effect |
+Claude Code uses `context_window.current_usage` (input plus cache creation/read tokens) for the current prompt, rather than cumulative input tokens across the conversation. Its `autoCompactWindow` setting appears only on Claude's line.
+
+Cursor uses `context_window.used_percentage` for session fill, with tokens/window derived from that percentage when available. Its last-call `current_usage` can exceed the session window and must not determine fill. Effort comes from `model.param_summary`, then the matching selected model's parameters in CLI config.
+
+Antigravity supports `conversation_id`, effort in a model label such as `Gemini 4 Carbon (Medium)`, and quota `remaining_fraction` / `used_percentage` with reset times. Model-specific quota is selected by model ID; when no ID matches, a single quota entry is accepted, but multiple entries are not guessed. Floating-point rounding cannot turn 20% into 19%.
+
+## Performance and workflow progress
+
+The default renderer starts no child processes. It parses the input once and reads small local settings/cache files directly. The former shell renderer launched many `jq`, `awk` and badge subprocesses on each redraw, which could take several seconds under endpoint scanning or load and cause `signal: killed` / missing footer errors.
+
+[`scripts/statusline.sh`](scripts/statusline.sh) remains a compatibility entry point. Installers invoke Python directly to avoid the extra shell process.
+
+With [ai-state-machine](https://github.com/fraser-langton/ai-state-machine), the renderer reads the existing session cache and machine configuration to display the workflow progress line. Both `path` and `stages` styles are supported. Installers recognise ASM wrappers and replace the rendering command with this direct renderer, keeping ASM hooks, cached history and wrapped-command files intact. If ASM is installed again later and wraps this renderer, rerun this package's installer to restore direct rendering and avoid duplicate progress lines.
+
+## Caveman badge
+
+When [Caveman](https://github.com/JuliusBrussee/caveman) is installed, the default renderer reads its short mode and savings files directly. It refuses symlinked flag/suffix files and strips control characters.
+
+| Environment variable | Effect |
 | --- | --- |
-| `BETTER_STATUSLINE_CAVEMAN` | Path to `caveman-statusline.sh`, or `0` to hide the badge. Auto-detected when unset. |
+| `BETTER_STATUSLINE_CAVEMAN=0` | Hide the badge |
+| `BETTER_STATUSLINE_CAVEMAN=/path/to/script.sh` | Run an explicit custom badge script with a 250ms timeout; this optional override starts a child process |
+| `CAVEMAN_STATUSLINE_SAVINGS=0` | Hide the cached savings suffix |
+| `CLAUDE_CONFIG_DIR` | Locate Claude settings and Caveman files for any harness |
+| `ASM_HOME` / `ASM_MACHINE` | Override the workflow cache directory / machine file |
+
+## Verify changes
+
+```sh
+bash scripts/validate.sh
+printf '%s' '{"model":{"display_name":"Gemini 4 Carbon (Medium)"},"quota":{"carbon":{"remaining_fraction":0.8}}}' | python3 scripts/statusline.py antigravity
+```
+
+The tests cover host payload interpretation, missing versus zero metrics, quota selection/rounding, badge safety, workflow cache rendering, persistent installs, upgrades, backups and settings preservation. They use temporary directories, not live CLI settings.
 
 ## Uninstall
 
-Remove `statusLine` from `~/.claude/settings.json` (or restore the `settings.json.bak-*` backup), delete `~/.claude/better-ai-status-line/`, then run `/plugin uninstall better-ai-status-line`.
+Restore the backup beside the relevant settings file, or remove its `statusLine` entry, then delete that CLI's `better-ai-status-line` directory. For a Claude plugin installation, also run `/plugin uninstall better-ai-status-line`.
 
 ## License
 
